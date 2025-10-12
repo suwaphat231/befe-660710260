@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-//import BookCard from '../components/BookCard';
-//import LoadingSpinner from '../components/LoadingSpinner';
-//import './BookDetailPage.css';
 
 const BookDetailPage = () => {
   const { id } = useParams();
@@ -36,6 +33,31 @@ const BookDetailPage = () => {
       fetchBook();
     }
   }, [id]);
+
+  useEffect(() => {
+    if (book?.title) {
+      document.title = `${book.title} | Book Detail`;
+    }
+  }, [book]);
+
+  const handleDelete = async () => {
+    const confirmDelete = window.confirm('Are you sure you want to delete this book?');
+    if (!confirmDelete) return;
+
+    try {
+      const response = await fetch(`/api/v1/books/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete book');
+      }
+
+      navigate('/books');
+    } catch (err) {
+      alert(`Error deleting book: ${err.message}`);
+    }
+  };
 
   if (loading) {
     return (
@@ -76,10 +98,25 @@ const BookDetailPage = () => {
       <div className="bg-white rounded-lg shadow-lg p-6">
         <h1 className="text-3xl font-bold mb-4">{book.title}</h1>
         <div className="space-y-3">
-          <p><span className="font-semibold">Author:</span> {book.author}</p>
-          <p><span className="font-semibold">ISBN:</span> {book.isbn}</p>
-          <p><span className="font-semibold">Year:</span> {book.year}</p>
-          <p><span className="font-semibold">Price:</span> ฿{book.price}</p>
+          <p><span className="font-semibold">Author:</span> {book.author || 'Unknown'}</p>
+          <p><span className="font-semibold">ISBN:</span> {book.isbn || 'N/A'}</p>
+          <p><span className="font-semibold">Year:</span> {book.year || 'N/A'}</p>
+          <p><span className="font-semibold">Price:</span> ฿{book.price ? book.price.toFixed(2) : 'N/A'}</p>
+        </div>
+
+        <div className="mt-6 flex gap-4">
+          <button
+            onClick={() => navigate(`/books/${id}/edit`)}
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          >
+            Edit
+          </button>
+          <button
+            onClick={handleDelete}
+            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+          >
+            Delete
+          </button>
         </div>
       </div>
     </div>
