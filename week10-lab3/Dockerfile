@@ -1,23 +1,20 @@
-# ---------- Build stage ----------
-FROM golang:1.24.5-alpine AS builder
+FROM golang:1.24.5 AS builder
+
 WORKDIR /app
 
 COPY go.mod go.sum ./
+#Before copy you must to do go.mod go.sum  
 RUN go mod download
 
 COPY . .
-ENV CGO_ENABLED=0 GOOS=linux GOARCH=amd64
-RUN go build -o main ./main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -a -o main .
 
-# ---------- Runtime stage ----------
 FROM alpine:latest
-WORKDIR /root/
+RUN apk --no-cache add ca-certificates curl
 
-RUN apk add --no-cache curl
+WORKDIR /root
 
 COPY --from=builder /app/main .
 COPY --from=builder /app/docs ./docs
 
-
-EXPOSE 8080
-ENTRYPOINT ["./main"]
+ENTRYPOINT [ "./main" ]
