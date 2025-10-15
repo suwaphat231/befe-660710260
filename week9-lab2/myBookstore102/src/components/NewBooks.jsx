@@ -1,31 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import BookCard from './BookCard';
 
-const NewBooks = () => {
+const Newbooks = () => {
   // กำหนด State สำหรับจัดการข้อมูล
-  const [newBooks, setNewBooks] = useState([]);
+  const [featuredBooks, setFeaturedBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchNewBooks = async () => {
+    const fetchBooks = async () => {
       try {
         setLoading(true);
         
-        // เรียก API เพื่อดึงข้อมูลหนังสือใหม่
-        const response = await fetch('http://localhost:8080/api/v1/books/new');
+        // เรียก API เพื่อดึงข้อมูลหนังสือ
+        const response = await fetch('/api/v1/books/new');
 
         if (!response.ok) {
-          throw new Error('Failed to fetch new books');
+          throw new Error('Failed to fetch books');
         }
 
         const data = await response.json();
-        setNewBooks(data);
+
+        // สุ่มหนังสือ 3 เล่ม
+        // const shuffled = [...data].sort(() => 0.5 - Math.random());
+        const selected = data.slice(0, 3);
+
+        setFeaturedBooks(selected);
         setError(null);
         
       } catch (err) {
         setError(err.message);
-        console.error('Error fetching new books:', err);
+        console.error('Error fetching books:', err);
         
       } finally {
         setLoading(false);
@@ -33,7 +38,7 @@ const NewBooks = () => {
     };
 
     // เรียกใช้ฟังก์ชันดึงข้อมูล
-    fetchNewBooks();
+    fetchBooks();
   }, []); // [] = dependency array ว่าง = รันครั้งเดียว
 
   // กรณีกำลังโหลดข้อมูล
@@ -41,7 +46,7 @@ const NewBooks = () => {
     return (
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
         <div className="text-center py-8 col-span-full">
-          Loading new arrivals...
+          Loading...
         </div>
       </div>
     );
@@ -61,7 +66,7 @@ const NewBooks = () => {
   // กรณีแสดงผลข้อมูลปกติ
   return (
     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-      {newBooks.map(book => (
+      {featuredBooks.map(book => (
         <BookCard 
           key={book.id} 
           book={book} 
@@ -71,4 +76,4 @@ const NewBooks = () => {
   );
 };
 
-export default NewBooks;
+export default Newbooks;
