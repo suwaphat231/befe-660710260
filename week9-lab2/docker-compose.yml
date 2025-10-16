@@ -1,6 +1,6 @@
 services:
   fontend:
-    build: ./mybookstore102
+    build: ./myBookstore102
     ports:
       - "3001:80"
     restart: unless-stopped
