@@ -15,7 +15,7 @@ const LoginPage = () => {
     // ตรวจสอบชื่อผู้ใช้และรหัสผ่าน
     if (username === 'bookstoreadmin' && password === 'ManageBook68') {
       localStorage.setItem('isAdminAuthenticated', 'true');
-      navigate('/store-manager/add-book');
+      navigate('/books'); 
     } else {
       setError('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
     }

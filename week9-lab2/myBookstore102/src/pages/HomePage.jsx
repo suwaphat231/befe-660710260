@@ -1,163 +1,206 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRightIcon, BookOpenIcon, TruckIcon, ShieldCheckIcon } from '@heroicons/react/outline';
-import BookCard from '../components/BookCard';
+import { booksAPI } from '../services/api';
 import FeaturedBooks from '../components/FeaturedBooks';
 import Newbooks from '../components/Newbooks';
+import LoadingSpinner from '../components/LoadingSpinner';
 
-const HomePage = () => {
+function HomePage() {
+  const [featuredBooks, setFeaturedBooks] = useState([]);
+  const [newBooks, setNewBooks] = useState([]);
+  const [discountedBooks, setDiscountedBooks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const categories = [
-    { name: 'นิยาย', icon: '📚', color: 'bg-sky-100', slug: 'fiction' },
-    { name: 'การ์ตูน', icon: '🎨', color: 'bg-rose-100', slug: 'comics' },
-    { name: 'วิชาการ', icon: '🎓', color: 'bg-lime-100', slug: 'academic' },
-    { name: 'จิตวิทยา', icon: '🧠', color: 'bg-indigo-100', slug: 'psychology' },
-    { name: 'กีฬา', icon: '🧠', color: 'bg-cyan-100', slug: 'sport' },
-  ];
+  useEffect(() => {
+    fetchHomeData();
+  }, []);
+
+  const fetchHomeData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const [featuredRes, newRes, discountedRes] = await Promise.all([
+        booksAPI.getFeatured(8),
+        booksAPI.getNew(),
+        booksAPI.getDiscounted(),
+      ]);
+
+      setFeaturedBooks(featuredRes.data || []);
+      setNewBooks(newRes.data || []);
+      setDiscountedBooks(discountedRes.data || []);
+      
+    } catch (err) {
+      console.error('Error fetching books:', err);
+      setError('Failed to fetch books');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return <LoadingSpinner />;
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center text-red-600">
+          <p className="text-xl">Error: {error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-r from-green-400 to-green-800 text-white">
-        <div className="container mx-auto px-4 py-24">
-          <div className="max-w-3xl">
-            <h1 className="text-5xl md:text-6xl font-bold mb-6 animate-fade-in">
-              ยินดีต้อนรับสู่ <span className="text-yellow-300">BookStore</span>
-            </h1>
-            <p className="text-xl mb-8 opacity-90">
-              ค้นพบหนังสือที่คุณรัก จากคอลเล็กชันมากกว่า 10,000 เล่ม
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Link to="/books"
-                className="inline-flex items-center justify-center px-8 py-3 bg-white 
-                text-black font-semibold rounded-lg hover:bg-gray-100 
-                transform hover:scale-105 transition-all duration-200 ">
-                เลือกซื้อหนังสือ
-                <ArrowRightIcon className="ml-2 h-5 w-5" />
-              </Link>
-              <Link to="/categories"
-                className="inline-flex items-center justify-center px-8 py-3 
-                border-2 border-white text-white font-semibold rounded-lg 
-                hover:bg-white hover:text-viridian-600 transition-all duration-200">
-                ดูหมวดหมู่ทั้งหมด
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        {/* Wave SVG */}
-        <div className="absolute bottom-0 w-full">
-          <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M0 120L60 110C120 100 240 80 360 70C480 60 600 60 720 65C840 70 960 80 1080 85C1200 90 1320 90 1380 90L1440 90V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0V120Z"
-              fill="#F9FAFB" />
-          </svg>
-        </div>
-      </section>
-
-      {/* Features */}
-      <section className="py-16 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center group">
-              <div className="bg-viridian-100 p-4 rounded-full w-20 h-20 mx-auto mb-4 
-                group-hover:bg-viridian-200 transition-colors">
-                <TruckIcon className="h-12 w-12 text-viridian-600" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">จัดส่งฟรี</h3>
-              <p className="text-gray-600">เมื่อซื้อครบ 500 บาท</p>
-            </div>
-            <div className="text-center group">
-              <div className="bg-green-100 p-4 rounded-full w-20 h-20 mx-auto mb-4 
-                group-hover:bg-green-200 transition-colors">
-                <ShieldCheckIcon className="h-12 w-12 text-green-600" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">รับประกันคุณภาพ</h3>
-              <p className="text-gray-600">หนังสือของแท้ 100%</p>
-            </div>
-            <div className="text-center group">
-              <div className="bg-purple-100 p-4 rounded-full w-20 h-20 mx-auto mb-4 
-                group-hover:bg-purple-200 transition-colors">
-                <BookOpenIcon className="h-12 w-12 text-purple-600" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">คอลเล็กชันมากมาย</h3>
-              <p className="text-gray-600">กว่า 10,000 เล่ม</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Categories */}
-      <section className="py-16">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">หมวดหมู่ยอดนิยม</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {categories.map((category, index) => (
-              <Link
-                key={index}
-                to={`/categories/${category.slug}`}
-                className="group relative overflow-hidden rounded-xl shadow-lg hover:shadow-2xl 
-                  transition-all duration-300 transform hover:-translate-y-2"
-              >
-                <div className={`${category.color} h-40 flex flex-col items-center justify-center`}>
-                  <span className="text-5xl mb-2">{category.icon}</span>
-                  <h3 className="text-sky-950 font-bold text-lg">{category.name}</h3>
-                </div>
-                <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-20 
-                  transition-opacity duration-300"></div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* New Books */}
-      <section className="py-16 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">หนังสือใหม่</h2>
-          <Newbooks />
-        </div>
-      </section>
-      {/* Featured Books */}
-      <section className="py-16 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">หนังสือแนะนำ</h2>
-          <FeaturedBooks />
-          <div className="text-center mt-8">
-            <Link to="/books" className="inline-flex items-center text-viridian-600 
-              hover:text-viridian-700 font-semibold text-lg group">
-              ดูหนังสือทั้งหมด
-              <ArrowRightIcon className="ml-2 h-5 w-5 group-hover:translate-x-2 
-                transition-transform" />
+      <section className="bg-gradient-to-r from-green-600 to-emerald-700 text-white py-20">
+        <div className="container mx-auto px-4 text-center">
+          <h1 className="text-5xl md:text-6xl font-bold mb-6">
+            ยินดีต้อนรับสู่ <span className="text-yellow-300">BookStore</span>
+          </h1>
+          <p className="text-xl md:text-2xl mb-8">
+            ค้นพบหนังสือที่คุณรัก จากห้องสลักจินมากกว่า 10,000 เล่ม
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              to="/books"
+              className="bg-white text-green-600 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-gray-100 transition shadow-lg inline-flex items-center justify-center"
+            >
+              เลือกซื้อหนังสือ
+              <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </Link>
+            <Link
+              to="/about"
+              className="bg-transparent border-2 border-white text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white hover:text-green-600 transition shadow-lg"
+            >
+              ดูหมวดหมู่ทั้งหมด
             </Link>
           </div>
         </div>
       </section>
 
-      {/* Newsletter */}
-      <section className="py-16 bg-viridian-600">
+      {/* Featured Books */}
+      <section className="container mx-auto px-4 py-16">
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h2 className="text-3xl font-bold text-gray-800 mb-2">หนังสือแนะนำ</h2>
+            <p className="text-gray-600">คัดสรรหนังสือที่คุณรัก เรตติ้งดีที่สุด</p>
+          </div>
+          <Link to="/books" className="text-green-600 hover:text-green-700 font-semibold flex items-center transition">
+            ดูทั้งหมด
+            <svg className="w-5 h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </Link>
+        </div>
+        <FeaturedBooks books={featuredBooks} />
+      </section>
+
+      {/* New Books */}
+      <section className="bg-white py-16">
+        <div className="container mx-auto px-4">
+          <div className="flex justify-between items-center mb-8">
+            <div>
+              <h2 className="text-3xl font-bold text-gray-800 mb-2">หนังสือใหม่</h2>
+              <p className="text-gray-600">หนังสือเข้าใหม่ล่าสุด อัพเดททุกวัน</p>
+            </div>
+            <Link to="/books" className="text-green-600 hover:text-green-700 font-semibold flex items-center transition">
+              ดูทั้งหมด
+              <svg className="w-5 h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
+          </div>
+          <Newbooks books={newBooks} />
+        </div>
+      </section>
+
+      {/* Discounted Books */}
+      {discountedBooks && discountedBooks.length > 0 && (
+        <section className="container mx-auto px-4 py-16">
+          <div className="flex justify-between items-center mb-8">
+            <div>
+              <h2 className="text-3xl font-bold text-gray-800 mb-2">
+                <span className="text-red-600">🔥</span> ลดราคาพิเศษ
+              </h2>
+              <p className="text-gray-600">หนังสือลดราคา ราคาพิเศษสุดคุ้ม</p>
+            </div>
+            <Link to="/books" className="text-green-600 hover:text-green-700 font-semibold flex items-center transition">
+              ดูทั้งหมด
+              <svg className="w-5 h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {discountedBooks.slice(0, 8).map((book) => (
+              <Link
+                key={book.id}
+                to={`/books/${book.id}`}
+                className="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden group"
+              >
+                <div className="relative overflow-hidden">
+                  <img
+                    src={book.cover_image || '/images/placeholder.jpg'}
+                    alt={book.title}
+                    className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  {book.discount > 0 && (
+                    <span className="absolute top-3 right-3 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
+                      -{book.discount}%
+                    </span>
+                  )}
+                </div>
+                
+                <div className="p-4">
+                  <h3 className="font-semibold text-lg mb-1 line-clamp-2 group-hover:text-green-600 transition-colors">
+                    {book.title}
+                  </h3>
+                  <p className="text-gray-600 text-sm mb-2">{book.author}</p>
+                  
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-green-600 font-bold text-xl">฿{book.price}</span>
+                      {book.original_price && (
+                        <span className="text-gray-400 line-through text-sm ml-2">
+                          ฿{book.original_price}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Call to Action */}
+      <section className="bg-gradient-to-r from-emerald-600 to-green-700 text-white py-16">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold text-white mb-4">
-            รับข่าวสารและโปรโมชั่นล่าสุด
-          </h2>
-          <p className="text-viridian-200 mb-8">
-            สมัครรับจดหมายข่าวเพื่อไม่พลาดหนังสือใหม่และส่วนลดพิเศษ
+          <h2 className="text-4xl font-bold mb-4">พร้อมที่จะเริ่มอ่านหนังสือแล้วหรือยัง?</h2>
+          <p className="text-xl mb-8">
+            สำรวจคอลเลกชันหนังสือมากมายของเรา และค้นหาหนังสือเล่มโปรดของคุณวันนี้
           </p>
-          <form className="max-w-md mx-auto flex flex-col sm:flex-row gap-4">
-            <input
-              type="email"
-              placeholder="กรอกอีเมลของคุณ"
-              className="flex-1 px-6 py-3 rounded-lg focus:outline-none focus:ring-4 
-                focus:ring-viridian-300 text-gray-900"
-            />
-            <button type="submit" className="px-8 py-3 bg-yellow-400 text-viridian-900 
-              font-semibold rounded-lg hover:bg-yellow-300 transition-colors">
-              สมัครรับข่าว
-            </button>
-          </form>
+          <Link
+            to="/books"
+            className="bg-white text-green-600 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-gray-100 transition shadow-lg inline-flex items-center"
+          >
+            เริ่มช้อปปิ้งเลย
+            <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+          </Link>
         </div>
       </section>
     </div>
   );
-};
+}
 
 export default HomePage;

@@ -12,8 +12,11 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME}
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     restart: unless-stopped
+    ports:
+      - "8081:8080"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
@@ -31,6 +34,14 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ../bookstoredatabase/docker/init.sql:/docker-entrypoint-initdb.d/001-init.sql
+      - ../week11-lab1/migrations/002_add_book_fields_up.sql:/docker-entrypoint-initdb.d/002-add-fields.sql
+      - ../week11-lab1/migrations/003_seed_books_data.sql:/docker-entrypoint-initdb.d/003-seed-data.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
   pgdata:

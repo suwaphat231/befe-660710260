@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { booksAPI } from '../services/api';
+import LoadingSpinner from '../components/LoadingSpinner';
 
-function AddBookPage() {
+function EditBookPage() {
+  const { id } = useParams();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     author: '',
@@ -24,6 +27,23 @@ function AddBookPage() {
     description: ''
   });
 
+  useEffect(() => {
+    fetchBook();
+  }, [id]);
+
+  const fetchBook = async () => {
+    try {
+      setLoading(true);
+      const response = await booksAPI.getById(id);
+      setFormData(response.data);
+    } catch (err) {
+      alert('ไม่สามารถโหลดข้อมูลหนังสือได้: ' + err.message);
+      navigate('/books');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
@@ -36,9 +56,8 @@ function AddBookPage() {
     e.preventDefault();
     
     try {
-      setLoading(true);
+      setSaving(true);
       
-      // Convert string to number for numeric fields
       const bookData = {
         ...formData,
         year: parseInt(formData.year) || new Date().getFullYear(),
@@ -50,24 +69,26 @@ function AddBookPage() {
         pages: parseInt(formData.pages) || 0,
       };
 
-      await booksAPI.create(bookData);
-      alert('เพิ่มหนังสือสำเร็จ!');
+      await booksAPI.update(id, bookData);
+      alert('แก้ไขหนังสือสำเร็จ!');
       navigate('/books');
     } catch (err) {
       alert('เกิดข้อผิดพลาด: ' + err.message);
-      console.error('Error adding book:', err);
+      console.error('Error updating book:', err);
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
+
+  if (loading) return <LoadingSpinner />;
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-3xl">
       <div className="bg-white rounded-lg shadow-lg p-6 md:p-8">
-        <h1 className="text-3xl font-bold mb-6 text-gray-800">เพิ่มหนังสือใหม่</h1>
+        <h1 className="text-3xl font-bold mb-6 text-gray-800">แก้ไขข้อมูลหนังสือ</h1>
         
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Basic Information */}
+          {/* Same form fields as AddBookPage */}
           <div className="grid md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -80,7 +101,6 @@ function AddBookPage() {
                 onChange={handleChange}
                 required
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                placeholder="กรอกชื่อหนังสือ"
               />
             </div>
 
@@ -95,7 +115,6 @@ function AddBookPage() {
                 onChange={handleChange}
                 required
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                placeholder="กรอกชื่อผู้แต่ง"
               />
             </div>
           </div>
@@ -109,7 +128,6 @@ function AddBookPage() {
                 value={formData.isbn}
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                placeholder="978-XXXXXXXXXX"
               />
             </div>
 
@@ -125,7 +143,6 @@ function AddBookPage() {
             </div>
           </div>
 
-          {/* Category and Publisher */}
           <div className="grid md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">หมวดหมู่</label>
@@ -135,7 +152,6 @@ function AddBookPage() {
                 value={formData.category}
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                placeholder="เช่น Fiction, Technology"
               />
             </div>
 
@@ -147,12 +163,10 @@ function AddBookPage() {
                 value={formData.publisher}
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                placeholder="กรอกชื่อสำนักพิมพ์"
               />
             </div>
           </div>
 
-          {/* Price Information */}
           <div className="grid md:grid-cols-3 gap-6">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -167,7 +181,6 @@ function AddBookPage() {
                 step="0.01"
                 min="0"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                placeholder="0.00"
               />
             </div>
 
@@ -181,7 +194,6 @@ function AddBookPage() {
                 step="0.01"
                 min="0"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                placeholder="0.00"
               />
             </div>
 
@@ -196,12 +208,10 @@ function AddBookPage() {
                 min="0"
                 max="100"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                placeholder="0"
               />
             </div>
           </div>
 
-          {/* Additional Info */}
           <div className="grid md:grid-cols-3 gap-6">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">จำนวนหน้า</label>
@@ -241,12 +251,10 @@ function AddBookPage() {
                 min="0"
                 max="5"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                placeholder="0.0 - 5.0"
               />
             </div>
           </div>
 
-          {/* Cover Image URL */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">URL รูปปก</label>
             <input
@@ -255,11 +263,9 @@ function AddBookPage() {
               value={formData.cover_image}
               onChange={handleChange}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              placeholder="https://example.com/book-cover.jpg"
             />
           </div>
 
-          {/* Description */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">คำอธิบาย</label>
             <textarea
@@ -268,11 +274,9 @@ function AddBookPage() {
               onChange={handleChange}
               rows="4"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              placeholder="เขียนคำอธิบายเกี่ยวกับหนังสือเล่มนี้..."
             />
           </div>
 
-          {/* Is New Checkbox */}
           <div className="flex items-center">
             <input
               type="checkbox"
@@ -286,14 +290,13 @@ function AddBookPage() {
             </label>
           </div>
 
-          {/* Buttons */}
           <div className="flex gap-4 pt-4">
             <button
               type="submit"
-              disabled={loading}
-              className="flex-1 bg-green-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-green-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+              disabled={saving}
+              className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
-              {loading ? 'กำลังบันทึก...' : 'บันทึก'}
+              {saving ? 'กำลังบันทึก...' : 'บันทึกการแก้ไข'}
             </button>
             <button
               type="button"
@@ -309,4 +312,4 @@ function AddBookPage() {
   );
 }
 
-export default AddBookPage;
+export default EditBookPage;

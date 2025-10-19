@@ -57,9 +57,16 @@ paths:
     get:
       consumes:
       - application/json
-      description: |-
-        Get all books or filter by year
-        Get details of specific book
+      description: Get all books or filter by year/category
+      parameters:
+      - description: Filter by year
+        in: query
+        name: year
+        type: integer
+      - description: Filter by category
+        in: query
+        name: category
+        type: string
       produces:
       - application/json
       responses:
@@ -69,10 +76,6 @@ paths:
             items:
               $ref: '#/definitions/main.Book'
             type: array
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/main.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -81,14 +84,27 @@ paths:
       tags:
       - Books
     post:
-      description: Create a new book
+      consumes:
+      - application/json
+      description: Create a new book with all fields
+      parameters:
+      - description: Book object
+        in: body
+        name: book
+        required: true
+        schema:
+          $ref: '#/definitions/main.Book'
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
             $ref: '#/definitions/main.Book'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -129,14 +145,23 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get details of specific book
+      - application/json
+      description: |-
+        Get details of specific book
+        Get details of specific book
       parameters:
       - description: Book ID
         in: path
         name: id
         required: true
         type: integer
+      - description: Book ID
+        in: path
+        name: id
+        required: true
+        type: integer
       produces:
+      - application/json
       - application/json
       responses:
         "200":
@@ -153,6 +178,7 @@ paths:
             $ref: '#/definitions/main.ErrorResponse'
       summary: Get book by ID
       tags:
+      - Books
       - Books
     put:
       consumes:
@@ -192,6 +218,53 @@ paths:
       summary: Update a book
       tags:
       - Books
+  /books/discounted:
+    get:
+      consumes:
+      - application/json
+      description: Get books with discount greater than 0
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/main.Book'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: Get discounted books
+      tags:
+      - Books
+  /books/featured:
+    get:
+      consumes:
+      - application/json
+      description: Get books with high ratings (4.0+)
+      parameters:
+      - description: Number of books to return (default 10)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/main.Book'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: Get featured books
+      tags:
+      - Books
   /books/new:
     get:
       consumes:
@@ -216,6 +289,58 @@ paths:
           schema:
             $ref: '#/definitions/main.ErrorResponse'
       summary: Get new books
+      tags:
+      - Books
+  /books/search:
+    get:
+      consumes:
+      - application/json
+      description: Search books by title, author, or description
+      parameters:
+      - description: Search keyword
+        in: query
+        name: q
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/main.Book'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: Search books
+      tags:
+      - Books
+  /categories:
+    get:
+      consumes:
+      - application/json
+      description: Get list of all book categories
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: string
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: Get all categories
       tags:
       - Books
 swagger: "2.0"
