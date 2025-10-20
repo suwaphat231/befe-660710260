@@ -623,7 +623,7 @@ func main() {
 		api.POST("/books", createBook)
 		api.PUT("/books/:id", updateBook)
 		api.DELETE("/books/:id", deleteBook)
-		api.GET("/categories", getCategories) // ✅ ตรวจสอบว่ามีบรรทัดนี้
+		api.GET("/categories", getCategories)
 	}
 
 	r.Run(":8080")
